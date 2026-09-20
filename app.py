@@ -55,7 +55,8 @@ def ask_claude(chat_id, user_text):
     )
     resp.raise_for_status()
     data = resp.json()
-    reply = data["content"][0]["text"]
+    text_blocks = [b["text"] for b in data.get("content", []) if b.get("type") == "text"]
+    reply = "\n".join(text_blocks).strip() or "ما قدرت أكون رد، جرب مرة ثانية."
     history.append({"role": "assistant", "content": reply})
     history[:] = history[-MAX_HISTORY:]
     return reply
