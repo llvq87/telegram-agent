@@ -71,13 +71,33 @@ def health():
 def debug():
     # Temporary: confirms the key is loaded correctly without exposing it.
     key = ANTHROPIC_API_KEY or ""
-    return {
+    info = {
         "key_present": bool(key),
         "key_length": len(key),
         "key_start": key[:12],
         "key_end": key[-6:] if len(key) >= 6 else key,
         "has_whitespace": key != key.strip(),
     }
+    try:
+        resp = requests.post(
+            ANTHROPIC_API,
+            headers={
+                "x-api-key": key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": MODEL,
+                "max_tokens": 16,
+                "messages": [{"role": "user", "content": "hi"}],
+            },
+            timeout=30,
+        )
+        info["api_status_code"] = resp.status_code
+        info["api_response"] = resp.text[:500]
+    except Exception as e:
+        info["api_call_error"] = str(e)
+    return info
 
 
 @app.route("/webhook", methods=["POST"])
