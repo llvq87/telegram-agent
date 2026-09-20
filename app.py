@@ -67,6 +67,19 @@ def health():
     return "Bot is running."
 
 
+@app.route("/debug", methods=["GET"])
+def debug():
+    # Temporary: confirms the key is loaded correctly without exposing it.
+    key = ANTHROPIC_API_KEY or ""
+    return {
+        "key_present": bool(key),
+        "key_length": len(key),
+        "key_start": key[:12],
+        "key_end": key[-6:] if len(key) >= 6 else key,
+        "has_whitespace": key != key.strip(),
+    }
+
+
 @app.route("/webhook", methods=["POST"])
 def webhook():
     update = request.get_json(force=True)
